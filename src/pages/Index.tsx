@@ -1,21 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Download, FileText, Calendar, Shield, Users, AlertCircle } from 'lucide-react';
+import { Download, FileText, Plus, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExhibitService } from '../services/exhibitService';
 import { PDFGenerator } from '../utils/pdfGenerator';
 import { Exhibit, ExhibitFormData, CollectionData } from '../types/exhibit';
 import { ExhibitForm } from '../components/ExhibitForm';
 import { CollectionDialog } from '../components/CollectionDialog';
+import { ExhibitsDashboard } from '../components/ExhibitsDashboard';
 
 const Index = () => {
   const [exhibits, setExhibits] = useState<Exhibit[]>([]);
@@ -25,7 +20,6 @@ const Index = () => {
   const [filterRemarks, setFilterRemarks] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('dateReceived');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [isSubmissionFormOpen, setIsSubmissionFormOpen] = useState(false);
   const [selectedExhibit, setSelectedExhibit] = useState<Exhibit | null>(null);
   const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
 
@@ -98,7 +92,6 @@ const Index = () => {
     try {
       const newExhibit = ExhibitService.createExhibit(data);
       setExhibits(prev => [...prev, newExhibit]);
-      setIsSubmissionFormOpen(false);
       toast.success('Exhibit submitted successfully!');
       console.log('New exhibit created:', newExhibit);
     } catch (error) {
@@ -183,24 +176,9 @@ const Index = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === 'Collected' 
-      ? <Badge className="bg-green-100 text-green-800">Collected</Badge>
-      : <Badge className="bg-yellow-100 text-yellow-800">Not Collected</Badge>;
-  };
-
-  const getRemarksBadge = (remarks: string) => {
-    return remarks === 'Exploited' 
-      ? <Badge className="bg-blue-100 text-blue-800">Exploited</Badge>
-      : <Badge className="bg-gray-100 text-gray-800">Unexploited</Badge>;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleMarkAsCollectedClick = (exhibit: Exhibit) => {
+    setSelectedExhibit(exhibit);
+    setIsCollectionDialogOpen(true);
   };
 
   return (
@@ -246,168 +224,24 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Search and Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5" />
-                  Search & Filter Exhibits
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <Label htmlFor="search">Search</Label>
-                    <Input
-                      id="search"
-                      placeholder="Serial, Accused, I/O, Station..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="status-filter">Collection Status</Label>
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Collected">Collected</SelectItem>
-                        <SelectItem value="Not Collected">Not Collected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="remarks-filter">Remarks</Label>
-                    <Select value={filterRemarks} onValueChange={setFilterRemarks}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Remarks</SelectItem>
-                        <SelectItem value="Unexploited">Unexploited</SelectItem>
-                        <SelectItem value="Exploited">Exploited</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="sort">Sort By</Label>
-                    <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-                      const [field, order] = value.split('-');
-                      setSortBy(field);
-                      setSortOrder(order as 'asc' | 'desc');
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dateReceived-desc">Date Received (Newest)</SelectItem>
-                        <SelectItem value="dateReceived-asc">Date Received (Oldest)</SelectItem>
-                        <SelectItem value="serialNumber-asc">Serial Number (A-Z)</SelectItem>
-                        <SelectItem value="serialNumber-desc">Serial Number (Z-A)</SelectItem>
-                        <SelectItem value="station-asc">Station (A-Z)</SelectItem>
-                        <SelectItem value="collectionStatus-asc">Collection Status</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Total Exhibits: {exhibits.length}</span>
-                  <span>Filtered Results: {filteredExhibits.length}</span>
-                  <span>Collected: {exhibits.filter(e => e.collectionStatus === 'Collected').length}</span>
-                  <span>Pending: {exhibits.filter(e => e.collectionStatus === 'Not Collected').length}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Exhibits Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Exhibits Registry
-                </CardTitle>
-                <CardDescription>
-                  {filteredExhibits.length} exhibit{filteredExhibits.length !== 1 ? 's' : ''} found
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Serial Number</TableHead>
-                        <TableHead>Date Received</TableHead>
-                        <TableHead>Accused Person</TableHead>
-                        <TableHead>I/O</TableHead>
-                        <TableHead>Station</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Remarks</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredExhibits.map((exhibit) => (
-                        <TableRow key={exhibit.id}>
-                          <TableCell className="font-mono font-medium">{exhibit.serialNumber}</TableCell>
-                          <TableCell>{formatDate(exhibit.dateReceived)}</TableCell>
-                          <TableCell>{exhibit.accusedPerson}</TableCell>
-                          <TableCell>{exhibit.investigatingOfficer}</TableCell>
-                          <TableCell>{exhibit.station}</TableCell>
-                          <TableCell>{getStatusBadge(exhibit.collectionStatus)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {getRemarksBadge(exhibit.remarks)}
-                              {exhibit.remarks === 'Unexploited' && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleMarkAsExploited(exhibit)}
-                                  className="text-xs"
-                                >
-                                  Mark Exploited
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDownloadSubmissionPDF(exhibit)}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              {exhibit.collectionStatus === 'Not Collected' ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedExhibit(exhibit);
-                                    setIsCollectionDialogOpen(true);
-                                  }}
-                                >
-                                  Collect
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDownloadCollectionPDF(exhibit)}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+            <ExhibitsDashboard
+              exhibits={exhibits}
+              filteredExhibits={filteredExhibits}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              filterRemarks={filterRemarks}
+              setFilterRemarks={setFilterRemarks}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+              onDownloadSubmissionPDF={handleDownloadSubmissionPDF}
+              onDownloadCollectionPDF={handleDownloadCollectionPDF}
+              onMarkAsExploited={handleMarkAsExploited}
+              onMarkAsCollected={handleMarkAsCollectedClick}
+            />
           </TabsContent>
 
           <TabsContent value="submit">
