@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,6 +118,18 @@ const Index = () => {
     } catch (error) {
       toast.error('Failed to mark exhibit as collected.');
       console.error('Error marking exhibit as collected:', error);
+    }
+  };
+
+  const handleMarkAsExploited = (exhibit: Exhibit) => {
+    try {
+      const updatedExhibit = ExhibitService.updateExhibit(exhibit.id, { remarks: 'Exploited' });
+      setExhibits(prev => prev.map(e => e.id === exhibit.id ? updatedExhibit : e));
+      toast.success('Exhibit marked as exploited!');
+      console.log('Exhibit marked as exploited:', updatedExhibit);
+    } catch (error) {
+      toast.error('Failed to mark exhibit as exploited.');
+      console.error('Error marking exhibit as exploited:', error);
     }
   };
 
@@ -345,7 +356,21 @@ const Index = () => {
                           <TableCell>{exhibit.investigatingOfficer}</TableCell>
                           <TableCell>{exhibit.station}</TableCell>
                           <TableCell>{getStatusBadge(exhibit.collectionStatus)}</TableCell>
-                          <TableCell>{getRemarksBadge(exhibit.remarks)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getRemarksBadge(exhibit.remarks)}
+                              {exhibit.remarks === 'Unexploited' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleMarkAsExploited(exhibit)}
+                                  className="text-xs"
+                                >
+                                  Mark Exploited
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button
