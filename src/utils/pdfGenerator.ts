@@ -1,4 +1,3 @@
-
 import { Exhibit } from '../types/exhibit';
 
 export class PDFGenerator {
@@ -95,12 +94,6 @@ export class PDFGenerator {
             border-top: 1px solid #ccc;
             padding-top: 10px;
           }
-          .timestamp {
-            text-align: right;
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 20px;
-          }
           .legal-notice {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
@@ -177,10 +170,6 @@ export class PDFGenerator {
       <div class="header">
         <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
         <h2>FORENSIC EXHIBIT SUBMISSION RECEIPT</h2>
-      </div>
-
-      <div class="timestamp">
-        Generated: ${this.getCurrentTimestamp()}
       </div>
 
       <div class="section">
@@ -283,10 +272,6 @@ export class PDFGenerator {
       <div class="header">
         <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
         <h2>FORENSIC EXHIBIT COLLECTION REPORT</h2>
-      </div>
-
-      <div class="timestamp">
-        Generated: ${this.getCurrentTimestamp()}
       </div>
 
       <div class="section">
