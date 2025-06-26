@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, FileText, Plus, Shield } from 'lucide-react';
+import { Download, FileText, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExhibitService } from '../services/exhibitService';
 import { PDFGenerator } from '../utils/pdfGenerator';
@@ -188,7 +187,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Shield className="h-8 w-8 text-blue-600" />
+              <img 
+                src="/lovable-uploads/5eed787c-47df-4e92-bce6-d9383486879f.png" 
+                alt="ATPU Logo" 
+                className="h-12 w-auto"
+              />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">ATPU Exhibit Management</h1>
                 <p className="text-sm text-gray-500">Anti-Terror Police Unit - Forensic Evidence System</p>

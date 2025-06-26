@@ -27,6 +27,17 @@ export class PDFGenerator {
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+          }
+          .header-logo {
+            width: 80px;
+            height: auto;
+          }
+          .header-text {
+            text-align: center;
           }
           .header h1 {
             margin: 0;
@@ -178,8 +189,11 @@ export class PDFGenerator {
   static generateSubmissionReceipt(exhibit: Exhibit): void {
     const content = `
       <div class="header">
-        <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
-        <h2>FORENSIC EXHIBIT SUBMISSION RECEIPT</h2>
+        <img src="/lovable-uploads/5eed787c-47df-4e92-bce6-d9383486879f.png" alt="ATPU Logo" class="header-logo" />
+        <div class="header-text">
+          <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
+          <h2>FORENSIC EXHIBIT SUBMISSION RECEIPT</h2>
+        </div>
       </div>
 
       <div class="timestamp">
@@ -284,8 +298,11 @@ export class PDFGenerator {
 
     const content = `
       <div class="header">
-        <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
-        <h2>FORENSIC EXHIBIT COLLECTION REPORT</h2>
+        <img src="/lovable-uploads/5eed787c-47df-4e92-bce6-d9383486879f.png" alt="ATPU Logo" class="header-logo" />
+        <div class="header-text">
+          <h1>ANTI-TERROR POLICE UNIT (ATPU)</h1>
+          <h2>FORENSIC EXHIBIT COLLECTION REPORT</h2>
+        </div>
       </div>
 
       <div class="timestamp">
