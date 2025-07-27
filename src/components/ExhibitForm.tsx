@@ -14,7 +14,6 @@ interface ExhibitFormProps {
 
 export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<ExhibitFormData>({
-    serialNumber: '',
     dateReceived: new Date().toISOString().split('T')[0],
     receivingOfficer: '',
     examiner: '',
@@ -38,10 +37,6 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ExhibitFormData> = {};
-
-    if (!formData.serialNumber.trim()) {
-      newErrors.serialNumber = 'Serial number is required';
-    }
 
     if (!formData.dateReceived) {
       newErrors.dateReceived = 'Date received is required';
@@ -89,7 +84,6 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
       
       // Reset form after successful submission
       setFormData({
-        serialNumber: '',
         dateReceived: new Date().toISOString().split('T')[0],
         receivingOfficer: '',
         examiner: '',
@@ -119,40 +113,31 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="serialNumber">Serial Number *</Label>
-              <Input
-                id="serialNumber"
-                value={formData.serialNumber}
-                onChange={(e) => handleInputChange('serialNumber', e.target.value)}
-                placeholder="Enter unique serial number"
-                className={errors.serialNumber ? 'border-red-500' : ''}
-              />
-              {errors.serialNumber && (
-                <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.serialNumber}
-                </p>
-              )}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2 text-blue-800">
+              <FileText className="h-4 w-4" />
+              <span className="text-sm font-medium">Serial Number</span>
             </div>
-
-            <div>
-              <Label htmlFor="dateReceived">Date Received *</Label>
-              <Input
-                id="dateReceived"
-                type="date"
-                value={formData.dateReceived}
-                onChange={(e) => handleInputChange('dateReceived', e.target.value)}
-                className={errors.dateReceived ? 'border-red-500' : ''}
-              />
-              {errors.dateReceived && (
-                <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.dateReceived}
-                </p>
-              )}
-            </div>
+            <p className="text-sm text-blue-700 mt-1">
+              Serial number will be automatically generated in format: xxx-xx-xxxx (sequence-month-year)
+            </p>
+          </div>
+          
+          <div>
+            <Label htmlFor="dateReceived">Date Received *</Label>
+            <Input
+              id="dateReceived"
+              type="date"
+              value={formData.dateReceived}
+              onChange={(e) => handleInputChange('dateReceived', e.target.value)}
+              className={errors.dateReceived ? 'border-red-500' : ''}
+            />
+            {errors.dateReceived && (
+              <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {errors.dateReceived}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

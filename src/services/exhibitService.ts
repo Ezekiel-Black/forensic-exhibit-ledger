@@ -5,9 +5,38 @@ const STORAGE_KEY = 'atpu_exhibits';
 
 export class ExhibitService {
   private static generateSerialNumber(): string {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substr(2, 5);
-    return `ATPU-${timestamp}-${random}`.toUpperCase();
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    // Get existing exhibits to find the next sequential number
+    const exhibits = this.getAllExhibits();
+    const currentYearMonth = `${year}${month}`;
+    
+    // Filter exhibits from current year and month
+    const currentPeriodExhibits = exhibits.filter(exhibit => {
+      const match = exhibit.serialNumber.match(/^(\d{3})-(\d{2})-(\d{4})$/);
+      if (match) {
+        const [, , serialMonth, serialYear] = match;
+        return `${serialYear}${serialMonth}` === currentYearMonth;
+      }
+      return false;
+    });
+    
+    // Find the highest sequence number for current month/year
+    let maxSequence = 0;
+    currentPeriodExhibits.forEach(exhibit => {
+      const match = exhibit.serialNumber.match(/^(\d{3})-(\d{2})-(\d{4})$/);
+      if (match) {
+        const sequence = parseInt(match[1], 10);
+        maxSequence = Math.max(maxSequence, sequence);
+      }
+    });
+    
+    // Generate next sequence number (001-999)
+    const nextSequence = String(maxSequence + 1).padStart(3, '0');
+    
+    return `${nextSequence}-${month}-${year}`;
   }
 
   static getAllExhibits(): Exhibit[] {
@@ -28,15 +57,13 @@ export class ExhibitService {
   static createExhibit(data: ExhibitFormData): Exhibit {
     const exhibits = this.getAllExhibits();
     
-    // Check for duplicate serial number
-    const existingExhibit = exhibits.find(e => e.serialNumber === data.serialNumber);
-    if (existingExhibit) {
-      throw new Error('Serial number already exists');
-    }
+    // Generate automatic serial number
+    const serialNumber = this.generateSerialNumber();
 
     const now = new Date().toISOString();
     const newExhibit: Exhibit = {
       id: crypto.randomUUID(),
+      serialNumber,
       ...data,
       remarks: 'Unexploited',
       collectionStatus: 'Not Collected',

@@ -18,7 +18,6 @@ export interface Exhibit {
 }
 
 export interface ExhibitFormData {
-  serialNumber: string;
   dateReceived: string;
   receivingOfficer: string;
   examiner: string;
