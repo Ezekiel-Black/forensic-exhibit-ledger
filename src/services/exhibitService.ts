@@ -24,7 +24,7 @@ export class ExhibitService {
     });
     
     // Find the highest sequence number for current month/year
-    let maxSequence = 0;
+    let maxSequence = -1; // Start from -1 so first exhibit gets 000
     currentPeriodExhibits.forEach(exhibit => {
       const match = exhibit.serialNumber.match(/^(\d{3})-(\d{2})-(\d{4})$/);
       if (match) {
@@ -33,7 +33,7 @@ export class ExhibitService {
       }
     });
     
-    // Generate next sequence number (001-999)
+    // Generate next sequence number (000-999)
     const nextSequence = String(maxSequence + 1).padStart(3, '0');
     
     return `${nextSequence}-${month}-${year}`;
