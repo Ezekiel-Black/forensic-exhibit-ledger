@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, FileText, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { ExhibitService } from '../services/exhibitService';
+import { DataService } from '../services/dataService';
 import { PDFGenerator } from '../utils/pdfGenerator';
 import { Exhibit, ExhibitFormData, CollectionData } from '../types/exhibit';
 import { ExhibitForm } from '../components/ExhibitForm';
@@ -31,7 +31,7 @@ const Index = () => {
   }, [exhibits, searchTerm, filterStatus, filterRemarks, sortBy, sortOrder]);
 
   const loadExhibits = () => {
-    const loadedExhibits = ExhibitService.getAllExhibits();
+    const loadedExhibits = DataService.getAllExhibits();
     setExhibits(loadedExhibits);
     console.log('Loaded exhibits:', loadedExhibits);
   };
@@ -89,7 +89,7 @@ const Index = () => {
 
   const handleSubmitExhibit = (data: ExhibitFormData) => {
     try {
-      const newExhibit = ExhibitService.createExhibit(data);
+      const newExhibit = DataService.createExhibit(data);
       setExhibits(prev => [...prev, newExhibit]);
       toast.success('Exhibit submitted successfully!');
       console.log('New exhibit created:', newExhibit);
@@ -101,7 +101,7 @@ const Index = () => {
 
   const handleMarkAsCollected = (exhibit: Exhibit, collectionData: CollectionData) => {
     try {
-      const updatedExhibit = ExhibitService.markAsCollected(exhibit.id, collectionData);
+      const updatedExhibit = DataService.markAsCollected(exhibit.id, collectionData);
       setExhibits(prev => prev.map(e => e.id === exhibit.id ? updatedExhibit : e));
       setIsCollectionDialogOpen(false);
       setSelectedExhibit(null);
@@ -115,7 +115,7 @@ const Index = () => {
 
   const handleMarkAsExploited = (exhibit: Exhibit) => {
     try {
-      const updatedExhibit = ExhibitService.updateExhibit(exhibit.id, { remarks: 'Exploited' });
+      const updatedExhibit = DataService.updateExhibit(exhibit.id, { remarks: 'Exploited' });
       setExhibits(prev => prev.map(e => e.id === exhibit.id ? updatedExhibit : e));
       toast.success('Exhibit marked as exploited!');
       console.log('Exhibit marked as exploited:', updatedExhibit);
@@ -151,7 +151,7 @@ const Index = () => {
 
   const handleExportData = () => {
     try {
-      ExhibitService.exportData();
+      DataService.exportData();
       toast.success('Data exported successfully!');
     } catch (error) {
       toast.error('Failed to export data.');
@@ -164,7 +164,7 @@ const Index = () => {
     if (!file) return;
 
     try {
-      ExhibitService.importData(file, (importedExhibits) => {
+      DataService.importData(file, (importedExhibits) => {
         setExhibits(importedExhibits);
         toast.success('Data imported successfully!');
         console.log('Data imported:', importedExhibits);
