@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Calendar, User, FileText } from 'lucide-react';
 import { Exhibit, CollectionData } from '../types/exhibit';
 
@@ -50,10 +51,13 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
       newErrors.collectionDate = 'Collection date is required';
     }
 
+    if (exhibit.remarks === 'Unexploited' && !collectionData.unexploitationReason) {
+      newErrors.unexploitationReason = 'Please select a reason for unexploitation';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

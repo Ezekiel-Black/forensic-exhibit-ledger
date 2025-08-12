@@ -1,4 +1,18 @@
 
+export type UnexploitationReason =
+  | 'Pending Legal Authorization'
+  | 'Owner Cooperation Required'
+  | 'Device Locked / Encrypted'
+  | 'Unsupported Device Model'
+  | 'Unsupported OS / Firmware Version'
+  | 'Severe Physical Damage'
+  | 'Battery / Power Issues'
+  | 'Hardware Failure'
+  | 'Evidence Contamination Risk'
+  | 'Pending Specialist Review'
+  | 'Duplicate Exhibit'
+  | 'Investigation Halted';
+
 export interface Exhibit {
   id: string;
   serialNumber: string;
@@ -10,6 +24,7 @@ export interface Exhibit {
   accusedPerson: string;
   description: string;
   remarks: 'Unexploited' | 'Exploited';
+  unexploitationReason?: UnexploitationReason;
   collectionStatus: 'Collected' | 'Not Collected';
   collectionDate?: string;
   collectedBy?: string;
@@ -30,6 +45,7 @@ export interface ExhibitFormData {
 export interface CollectionData {
   collectedBy: string;
   collectionDate: string;
+  unexploitationReason?: UnexploitationReason;
 }
 
 export interface ExhibitSearchFilters {
