@@ -364,6 +364,12 @@ export class PDFGenerator {
           <div class="field-label">Description of Exhibit(s):</div>
           <div class="field-value">${exhibit.description}</div>
         </div>
+        ${exhibit.remarks === 'Unexploited' && exhibit.unexploitationReason ? `
+        <div class="field-row">
+          <div class="field-label">Reason For Unexploitation:</div>
+          <div class="field-value">${exhibit.unexploitationReason}</div>
+        </div>
+        ` : ''}
       </div>
 
       <div class="legal-notice">

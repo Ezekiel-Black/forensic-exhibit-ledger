@@ -28,7 +28,7 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
     collectionDate: new Date().toISOString().split('T')[0],
   });
 
-  const [errors, setErrors] = useState<Partial<CollectionData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof CollectionData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof CollectionData, value: string) => {
@@ -41,7 +41,7 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<CollectionData> = {};
+    const newErrors: Partial<Record<keyof CollectionData, string>> = {};
 
     if (!collectionData.collectedBy.trim()) {
       newErrors.collectedBy = 'Collected by is required';
@@ -182,7 +182,44 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
                     {errors.collectionDate}
                   </p>
                 )}
+            </div>
+
+            {exhibit.remarks === 'Unexploited' && (
+              <div className="grid grid-cols-1">
+                <div>
+                  <Label htmlFor="unexploitationReason">Reason For Unexploitation *</Label>
+                  <Select
+                    value={collectionData.unexploitationReason}
+                    onValueChange={(value) => handleInputChange('unexploitationReason', value)}
+                  >
+                    <SelectTrigger id="unexploitationReason">
+                      <SelectValue placeholder="Select a reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending Legal Authorization">Pending Legal Authorization</SelectItem>
+                      <SelectItem value="Owner Cooperation Required">Owner Cooperation Required</SelectItem>
+                      <SelectItem value="Device Locked / Encrypted">Device Locked / Encrypted</SelectItem>
+                      <SelectItem value="Unsupported Device Model">Unsupported Device Model</SelectItem>
+                      <SelectItem value="Unsupported OS / Firmware Version">Unsupported OS / Firmware Version</SelectItem>
+                      <SelectItem value="Severe Physical Damage">Severe Physical Damage</SelectItem>
+                      <SelectItem value="Battery / Power Issues">Battery / Power Issues</SelectItem>
+                      <SelectItem value="Hardware Failure">Hardware Failure</SelectItem>
+                      <SelectItem value="Evidence Contamination Risk">Evidence Contamination Risk</SelectItem>
+                      <SelectItem value="Pending Specialist Review">Pending Specialist Review</SelectItem>
+                      <SelectItem value="Duplicate Exhibit">Duplicate Exhibit</SelectItem>
+                      <SelectItem value="Investigation Halted">Investigation Halted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.unexploitationReason && (
+                    <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.unexploitationReason}
+                    </p>
+                  )}
+                </div>
               </div>
+            )}
+
             </div>
 
             {/* Legal Notice */}

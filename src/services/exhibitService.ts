@@ -121,6 +121,7 @@ export class ExhibitService {
       collectionStatus: 'Collected',
       collectionDate: collectionData.collectionDate,
       collectedBy: collectionData.collectedBy,
+      unexploitationReason: collectionData.unexploitationReason ?? exhibit.unexploitationReason,
       updatedAt: new Date().toISOString(),
     };
 
