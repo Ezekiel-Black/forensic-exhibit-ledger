@@ -15,13 +15,15 @@ interface CollectionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (exhibit: Exhibit, collectionData: CollectionData) => void;
+  isSubmitting?: boolean;
 }
 
 export const CollectionDialog: React.FC<CollectionDialogProps> = ({
   exhibit,
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
+  isSubmitting = false
 }) => {
   const [collectionData, setCollectionData] = useState<CollectionData>({
     collectedBy: '',
@@ -29,7 +31,6 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CollectionData, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof CollectionData, value: string) => {
     setCollectionData(prev => ({ ...prev, [field]: value }));
@@ -64,8 +65,6 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
     if (!validateForm()) {
       return;
     }
-
-    setIsSubmitting(true);
     
     try {
       await onSubmit(exhibit, collectionData);
@@ -78,8 +77,6 @@ export const CollectionDialog: React.FC<CollectionDialogProps> = ({
       setErrors({});
     } catch (error) {
       console.error('Error submitting collection:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

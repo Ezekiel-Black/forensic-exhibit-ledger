@@ -10,9 +10,10 @@ import { ExhibitFormData } from '../types/exhibit';
 
 interface ExhibitFormProps {
   onSubmit: (data: ExhibitFormData) => void;
+  isSubmitting?: boolean;
 }
 
-export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
+export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit, isSubmitting = false }) => {
   const [formData, setFormData] = useState<ExhibitFormData>({
     dateReceived: new Date().toISOString().split('T')[0],
     receivingOfficer: '',
@@ -24,7 +25,6 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
   });
 
   const [errors, setErrors] = useState<Partial<ExhibitFormData>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof ExhibitFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -76,8 +76,6 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
     if (!validateForm()) {
       return;
     }
-
-    setIsSubmitting(true);
     
     try {
       await onSubmit(formData);
@@ -94,8 +92,6 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit }) => {
       });
     } catch (error) {
       console.error('Error submitting form:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

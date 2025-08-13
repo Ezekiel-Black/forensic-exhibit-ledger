@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, FileText, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { DataService } from '../services/dataService';
+import { AsyncDataService } from '../services/asyncDataService';
 import { PDFGenerator } from '../utils/pdfGenerator';
 import { Exhibit, ExhibitFormData, CollectionData } from '../types/exhibit';
 import { ExhibitForm } from '../components/ExhibitForm';
 import { CollectionDialog } from '../components/CollectionDialog';
 import { ExhibitsDashboard } from '../components/ExhibitsDashboard';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { ErrorMessage } from '../components/ui/error-message';
+import { useAsync, useAsyncAction } from '../hooks/useAsync';
 
 const Index = () => {
-  const [exhibits, setExhibits] = useState<Exhibit[]>([]);
   const [filteredExhibits, setFilteredExhibits] = useState<Exhibit[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -22,21 +24,24 @@ const Index = () => {
   const [selectedExhibit, setSelectedExhibit] = useState<Exhibit | null>(null);
   const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
 
-  useEffect(() => {
-    loadExhibits();
-  }, []);
+  // Async data loading
+  const { data: exhibits, loading: exhibitsLoading, error: exhibitsError, refetch } = useAsync(
+    () => AsyncDataService.getAllExhibits(),
+    []
+  );
+
+  // Async actions
+  const { execute: submitExhibit, loading: submittingExhibit } = useAsyncAction(AsyncDataService.createExhibit);
+  const { execute: markAsCollected, loading: markingAsCollected } = useAsyncAction(AsyncDataService.markAsCollected);
+  const { execute: markAsExploited, loading: markingAsExploited } = useAsyncAction(AsyncDataService.updateExhibit);
 
   useEffect(() => {
     filterAndSortExhibits();
   }, [exhibits, searchTerm, filterStatus, filterRemarks, sortBy, sortOrder]);
 
-  const loadExhibits = () => {
-    const loadedExhibits = DataService.getAllExhibits();
-    setExhibits(loadedExhibits);
-    console.log('Loaded exhibits:', loadedExhibits);
-  };
-
   const filterAndSortExhibits = () => {
+    if (!exhibits) return;
+    
     let filtered = exhibits.filter(exhibit => {
       const matchesSearch = 
         exhibit.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,38 +92,35 @@ const Index = () => {
     setFilteredExhibits(filtered);
   };
 
-  const handleSubmitExhibit = (data: ExhibitFormData) => {
+  const handleSubmitExhibit = async (data: ExhibitFormData) => {
     try {
-      const newExhibit = DataService.createExhibit(data);
-      setExhibits(prev => [...prev, newExhibit]);
+      await submitExhibit(data);
+      await refetch(); // Reload exhibits
       toast.success('Exhibit submitted successfully!');
-      console.log('New exhibit created:', newExhibit);
     } catch (error) {
       toast.error('Failed to submit exhibit. Please try again.');
       console.error('Error creating exhibit:', error);
     }
   };
 
-  const handleMarkAsCollected = (exhibit: Exhibit, collectionData: CollectionData) => {
+  const handleMarkAsCollected = async (exhibit: Exhibit, collectionData: CollectionData) => {
     try {
-      const updatedExhibit = DataService.markAsCollected(exhibit.id, collectionData);
-      setExhibits(prev => prev.map(e => e.id === exhibit.id ? updatedExhibit : e));
+      await markAsCollected(exhibit.id, collectionData);
+      await refetch(); // Reload exhibits
       setIsCollectionDialogOpen(false);
       setSelectedExhibit(null);
       toast.success('Exhibit marked as collected!');
-      console.log('Exhibit collected:', updatedExhibit);
     } catch (error) {
       toast.error('Failed to mark exhibit as collected.');
       console.error('Error marking exhibit as collected:', error);
     }
   };
 
-  const handleMarkAsExploited = (exhibit: Exhibit) => {
+  const handleMarkAsExploited = async (exhibit: Exhibit) => {
     try {
-      const updatedExhibit = DataService.updateExhibit(exhibit.id, { remarks: 'Exploited' });
-      setExhibits(prev => prev.map(e => e.id === exhibit.id ? updatedExhibit : e));
+      await markAsExploited(exhibit.id, { remarks: 'Exploited' });
+      await refetch(); // Reload exhibits
       toast.success('Exhibit marked as exploited!');
-      console.log('Exhibit marked as exploited:', updatedExhibit);
     } catch (error) {
       toast.error('Failed to mark exhibit as exploited.');
       console.error('Error marking exhibit as exploited:', error);
@@ -149,9 +151,15 @@ const Index = () => {
     }
   };
 
-  const handleExportData = () => {
+  const handleExportData = async () => {
     try {
-      DataService.exportData();
+      const blob = await AsyncDataService.exportData();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `atpu_exhibits_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
       toast.success('Data exported successfully!');
     } catch (error) {
       toast.error('Failed to export data.');
@@ -159,16 +167,14 @@ const Index = () => {
     }
   };
 
-  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
-      DataService.importData(file, (importedExhibits) => {
-        setExhibits(importedExhibits);
-        toast.success('Data imported successfully!');
-        console.log('Data imported:', importedExhibits);
-      });
+      await AsyncDataService.importData(file);
+      await refetch(); // Reload exhibits
+      toast.success('Data imported successfully!');
     } catch (error) {
       toast.error('Failed to import data.');
       console.error('Error importing data:', error);
@@ -227,24 +233,43 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <ExhibitsDashboard
-              exhibits={exhibits}
-              filteredExhibits={filteredExhibits}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterStatus={filterStatus}
-              setFilterStatus={setFilterStatus}
-              filterRemarks={filterRemarks}
-              setFilterRemarks={setFilterRemarks}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              sortOrder={sortOrder}
-              setSortOrder={setSortOrder}
-              onDownloadSubmissionPDF={handleDownloadSubmissionPDF}
-              onDownloadCollectionPDF={handleDownloadCollectionPDF}
-              onMarkAsExploited={handleMarkAsExploited}
-              onMarkAsCollected={handleMarkAsCollectedClick}
-            />
+            {exhibitsLoading && (
+              <Card>
+                <CardContent className="flex items-center justify-center p-8">
+                  <LoadingSpinner className="mr-2" />
+                  <span className="text-muted-foreground">Loading exhibits...</span>
+                </CardContent>
+              </Card>
+            )}
+            
+            {exhibitsError && (
+              <ErrorMessage 
+                message={exhibitsError} 
+                onRetry={refetch}
+                className="mb-6"
+              />
+            )}
+            
+            {exhibits && !exhibitsLoading && !exhibitsError && (
+              <ExhibitsDashboard
+                exhibits={exhibits}
+                filteredExhibits={filteredExhibits}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filterStatus={filterStatus}
+                setFilterStatus={setFilterStatus}
+                filterRemarks={filterRemarks}
+                setFilterRemarks={setFilterRemarks}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                onDownloadSubmissionPDF={handleDownloadSubmissionPDF}
+                onDownloadCollectionPDF={handleDownloadCollectionPDF}
+                onMarkAsExploited={handleMarkAsExploited}
+                onMarkAsCollected={handleMarkAsCollectedClick}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="submit">
@@ -259,7 +284,10 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ExhibitForm onSubmit={handleSubmitExhibit} />
+                <ExhibitForm 
+                  onSubmit={handleSubmitExhibit} 
+                  isSubmitting={submittingExhibit}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -267,17 +295,18 @@ const Index = () => {
       </div>
 
       {/* Collection Dialog */}
-      {selectedExhibit && (
-        <CollectionDialog
-          exhibit={selectedExhibit}
-          isOpen={isCollectionDialogOpen}
-          onClose={() => {
-            setIsCollectionDialogOpen(false);
-            setSelectedExhibit(null);
-          }}
-          onSubmit={handleMarkAsCollected}
-        />
-      )}
+        {selectedExhibit && (
+          <CollectionDialog
+            exhibit={selectedExhibit}
+            isOpen={isCollectionDialogOpen}
+            onClose={() => {
+              setIsCollectionDialogOpen(false);
+              setSelectedExhibit(null);
+            }}
+            onSubmit={handleMarkAsCollected}
+            isSubmitting={markingAsCollected}
+          />
+        )}
     </div>
   );
 };

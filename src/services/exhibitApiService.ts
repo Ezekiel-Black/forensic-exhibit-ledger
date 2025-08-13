@@ -1,6 +1,5 @@
 import { Exhibit, ExhibitFormData, CollectionData } from '../types/exhibit';
-
-const API_BASE_URL = 'http://localhost:3000/api'; // Change when backend is ready
+import { API_CONFIG } from '../config/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -12,17 +11,17 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 export class ExhibitApiService {
   static async getAllExhibits(): Promise<Exhibit[]> {
-    const res = await fetch(`${API_BASE_URL}/exhibits`);
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits`);
     return handleResponse<Exhibit[]>(res);
   }
 
   static async getExhibitById(id: string): Promise<Exhibit> {
-    const res = await fetch(`${API_BASE_URL}/exhibits/${id}`);
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits/${id}`);
     return handleResponse<Exhibit>(res);
   }
 
   static async createExhibit(data: ExhibitFormData): Promise<Exhibit> {
-    const res = await fetch(`${API_BASE_URL}/exhibits`, {
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -31,7 +30,7 @@ export class ExhibitApiService {
   }
 
   static async updateExhibit(id: string, updates: Partial<Exhibit>): Promise<Exhibit> {
-    const res = await fetch(`${API_BASE_URL}/exhibits/${id}`, {
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -40,7 +39,7 @@ export class ExhibitApiService {
   }
 
   static async markAsCollected(id: string, collectionData: CollectionData): Promise<Exhibit> {
-    const res = await fetch(`${API_BASE_URL}/exhibits/${id}/collect`, {
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits/${id}/collect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(collectionData),
@@ -49,12 +48,12 @@ export class ExhibitApiService {
   }
 
   static async deleteExhibit(id: string): Promise<{ success: boolean }>{
-    const res = await fetch(`${API_BASE_URL}/exhibits/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_CONFIG.BASE_URL}/exhibits/${id}`, { method: 'DELETE' });
     return handleResponse<{ success: boolean }>(res);
   }
 
   static async exportData(): Promise<Blob> {
-    const res = await fetch(`${API_BASE_URL}/export`);
+    const res = await fetch(`${API_CONFIG.BASE_URL}/export`);
     if (!res.ok) throw new Error('Failed to export data');
     return res.blob();
   }
@@ -62,7 +61,7 @@ export class ExhibitApiService {
   static async importData(file: File): Promise<Exhibit[]> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_BASE_URL}/import`, {
+    const res = await fetch(`${API_CONFIG.BASE_URL}/import`, {
       method: 'POST',
       body: formData,
     });
@@ -76,7 +75,7 @@ export class ExhibitApiService {
     exploited: number;
     unexploited: number;
   }>{
-    const res = await fetch(`${API_BASE_URL}/stats`);
+    const res = await fetch(`${API_CONFIG.BASE_URL}/stats`);
     return handleResponse(res);
   }
 }
