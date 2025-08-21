@@ -2,21 +2,28 @@ import { Exhibit } from '../types/exhibit';
 
 export class PDFGenerator {
   private static createPDFContent(content: string, title: string): void {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      throw new Error('Unable to open print window');
-    }
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${title}</title>
-        <style>
+    try {
+      // Create a temporary div to hold the content
+      const printContainer = document.createElement('div');
+      printContainer.innerHTML = content;
+      printContainer.style.display = 'none';
+      
+      // Add styles for printing
+      const style = document.createElement('style');
+      style.textContent = `
+        @media print {
+          body * { visibility: hidden; }
+          .print-container, .print-container * { visibility: visible; }
+          .print-container { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+          }
           @page {
             margin: 20px;
           }
-          body {
+          .print-container {
             font-family: Arial, sans-serif;
             margin: 20px;
             font-size: 12px;
@@ -144,26 +151,31 @@ export class PDFGenerator {
             background-color: #f8f9fa;
             color: #495057;
           }
-          @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
-            @page { margin: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        ${content}
-        <script>
-          window.onload = function() {
-            window.print();
-          }
-        </script>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
+        }
+      `;
+      
+      printContainer.className = 'print-container';
+      document.head.appendChild(style);
+      document.body.appendChild(printContainer);
+      
+      // Set document title
+      const originalTitle = document.title;
+      document.title = title;
+      
+      // Trigger print dialog
+      window.print();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.head.removeChild(style);
+        document.body.removeChild(printContainer);
+        document.title = originalTitle;
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF. Please try again.');
+    }
   }
 
   private static formatDate(dateString: string): string {
