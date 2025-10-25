@@ -57,14 +57,21 @@ export class ExhibitService {
   static createExhibit(data: ExhibitFormData): Exhibit {
     const exhibits = this.getAllExhibits();
     
-    // Generate automatic serial number
-    const serialNumber = this.generateSerialNumber();
+    // Use manual serial number if provided, otherwise generate one
+    const serialNumber = data.serialNumber?.trim() || this.generateSerialNumber();
+    
+    // Check for duplicate serial numbers
+    const duplicate = exhibits.find(e => e.serialNumber === serialNumber);
+    if (duplicate) {
+      throw new Error(`Serial number "${serialNumber}" already exists`);
+    }
 
     const now = new Date().toISOString();
+    const { serialNumber: _, ...dataWithoutSerial } = data;
     const newExhibit: Exhibit = {
       id: crypto.randomUUID(),
       serialNumber,
-      ...data,
+      ...dataWithoutSerial,
       remarks: 'Unexploited',
       collectionStatus: 'Not Collected',
       createdAt: now,

@@ -23,7 +23,8 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit, isSubmitting
     accusedPerson: '',
     description: '',
   });
-
+  
+  const [useManualSerial, setUseManualSerial] = useState(false);
   const [errors, setErrors] = useState<Partial<ExhibitFormData>>({});
 
   const handleInputChange = (field: keyof ExhibitFormData, value: string) => {
@@ -37,6 +38,10 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit, isSubmitting
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ExhibitFormData> = {};
+
+    if (useManualSerial && !formData.serialNumber?.trim()) {
+      newErrors.serialNumber = 'Serial number is required when manual entry is enabled';
+    }
 
     if (!formData.dateReceived) {
       newErrors.dateReceived = 'Date received is required';
@@ -90,6 +95,7 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit, isSubmitting
         accusedPerson: '',
         description: '',
       });
+      setUseManualSerial(false);
     } catch (error) {
       console.error('Error submitting form:', error);
     }
@@ -110,13 +116,47 @@ export const ExhibitForm: React.FC<ExhibitFormProps> = ({ onSubmit, isSubmitting
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 text-blue-800">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">Serial Number</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-blue-800">
+                <FileText className="h-4 w-4" />
+                <span className="text-sm font-medium">Serial Number</span>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useManualSerial}
+                  onChange={(e) => {
+                    setUseManualSerial(e.target.checked);
+                    if (!e.target.checked) {
+                      setFormData(prev => ({ ...prev, serialNumber: undefined }));
+                    }
+                  }}
+                  className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-blue-700">Manual Entry</span>
+              </label>
             </div>
-            <p className="text-sm text-blue-700 mt-1">
-              Serial number will be automatically generated in format: xxx-xx-xxxx (sequence-month-year)
-            </p>
+            {!useManualSerial ? (
+              <p className="text-sm text-blue-700">
+                Serial number will be automatically generated in format: xxx-xx-xxxx (sequence-month-year)
+              </p>
+            ) : (
+              <div className="mt-2">
+                <Input
+                  id="serialNumber"
+                  value={formData.serialNumber || ''}
+                  onChange={(e) => handleInputChange('serialNumber', e.target.value)}
+                  placeholder="Enter serial number from external investigation"
+                  className={errors.serialNumber ? 'border-red-500' : ''}
+                />
+                {errors.serialNumber && (
+                  <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.serialNumber}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           
           <div>
