@@ -34,7 +34,8 @@ export class PDFGenerator {
             width: 100%; 
           }
           @page {
-            margin: 20px;
+            margin: 15mm 10mm;
+            size: auto;
           }
           .print-container {
             font-family: Arial, sans-serif;
