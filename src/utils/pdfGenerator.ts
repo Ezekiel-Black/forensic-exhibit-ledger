@@ -6,7 +6,12 @@ export class PDFGenerator {
       // Create a temporary div to hold the content
       const printContainer = document.createElement('div');
       printContainer.innerHTML = content;
-      printContainer.style.display = 'none';
+      printContainer.className = 'print-container';
+      
+      // Hide from screen but make visible for print
+      printContainer.style.position = 'fixed';
+      printContainer.style.left = '-9999px';
+      printContainer.style.top = '0';
       
       // Add styles for printing
       const style = document.createElement('style');
@@ -154,7 +159,6 @@ export class PDFGenerator {
         }
       `;
       
-      printContainer.className = 'print-container';
       document.head.appendChild(style);
       document.body.appendChild(printContainer);
       
