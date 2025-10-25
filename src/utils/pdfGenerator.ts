@@ -8,14 +8,22 @@ export class PDFGenerator {
       printContainer.innerHTML = content;
       printContainer.className = 'print-container';
       
-      // Hide from screen but make visible for print
-      printContainer.style.position = 'fixed';
-      printContainer.style.left = '-9999px';
-      printContainer.style.top = '0';
+      // Hidden on screen via CSS; visible for print via @media rules
+
       
       // Add styles for printing
       const style = document.createElement('style');
       style.textContent = `
+        @media screen {
+          .print-container {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+          }
+        }
         @media print {
           body * { visibility: hidden; }
           .print-container, .print-container * { visibility: visible; }
@@ -165,17 +173,26 @@ export class PDFGenerator {
       // Set document title
       const originalTitle = document.title;
       document.title = title;
-      
-      // Trigger print dialog
-      window.print();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.head.removeChild(style);
-        document.body.removeChild(printContainer);
+
+      const cleanup = () => {
+        try {
+          document.head.contains(style) && document.head.removeChild(style);
+          document.body.contains(printContainer) && document.body.removeChild(printContainer);
+        } catch {}
         document.title = originalTitle;
-      }, 100);
-      
+        window.removeEventListener('afterprint', cleanup);
+      };
+
+      // Ensure DOM paints before printing
+      window.addEventListener('afterprint', cleanup);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.focus();
+          window.print();
+          // Fallback cleanup in case 'afterprint' doesn't fire
+          setTimeout(cleanup, 5000);
+        });
+      });
     } catch (error) {
       console.error('Error generating PDF:', error);
       throw new Error('Failed to generate PDF. Please try again.');
